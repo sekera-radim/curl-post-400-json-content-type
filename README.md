@@ -1,7 +1,8 @@
 # curl examples for a JSON task API
 
-A minimal JSON API over plain `node:http`. It only parses a request body
-when `Content-Type: application/json` is set; anything else gets a 400.
+A minimal JSON API over plain `node:http`. Like most JSON frameworks it parses a request body only when
+`Content-Type: application/json` is set. Any other body is ignored, so the
+request fails validation with a 400 even though the JSON looks valid.
 
     docker build -t curl-json-demo .
     docker run --rm curl-json-demo

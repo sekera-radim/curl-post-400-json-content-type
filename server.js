@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 // Minimal JSON task API: plain node:http, no framework, no dependencies.
-// It only parses a request body when Content-Type is application/json.
+// Like most JSON frameworks, it parses a request body only when Content-Type is
+// application/json. Any other body is ignored, so validation sees an empty object.
 const http = require("http");
 
 const tasks = new Map();
@@ -20,6 +21,17 @@ function readBody(req) {
   });
 }
 
+// The body counts only when the client labels it as JSON.
+async function readJson(req, contentType) {
+  const raw = await readBody(req);
+  if (contentType !== "application/json") return {};
+  try {
+    return JSON.parse(raw || "{}");
+  } catch {
+    return {};
+  }
+}
+
 const server = http.createServer(async (req, res) => {
   const contentType = (req.headers["content-type"] || "").split(";")[0].trim();
 
@@ -28,30 +40,22 @@ const server = http.createServer(async (req, res) => {
   }
 
   if (req.method === "POST" && req.url === "/tasks") {
-    if (contentType !== "application/json") {
-      return sendJson(res, 400, { error: "Content-Type must be application/json" });
-    }
-    const raw = await readBody(req);
-    let body;
-    try { body = JSON.parse(raw || "{}"); } catch { body = {}; }
+    const body = await readJson(req, contentType);
+    if (!body.title) return sendJson(res, 400, { error: "title is required" });
     const id = String(nextId++);
-    const task = { id, title: body.title || "untitled", status: "pending" };
+    const task = { id, title: body.title, status: "pending" };
     tasks.set(id, task);
     return sendJson(res, 201, task);
   }
 
   const m = req.url.match(/^\/tasks\/([^/]+)\/complete$/);
   if (req.method === "POST" && m) {
-    if (contentType !== "application/json") {
-      return sendJson(res, 400, { error: "Content-Type must be application/json" });
-    }
     const task = tasks.get(m[1]);
     if (!task) return sendJson(res, 404, { error: "task not found" });
-    const raw = await readBody(req);
-    let body;
-    try { body = JSON.parse(raw || "{}"); } catch { body = {}; }
+    const body = await readJson(req, contentType);
+    if (!body.summary) return sendJson(res, 400, { error: "summary is required" });
     task.status = "done";
-    task.result = { summary: body.summary || "" };
+    task.result = { summary: body.summary };
     return sendJson(res, 200, task);
   }
 

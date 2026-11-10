@@ -6,7 +6,7 @@ BASE=http://localhost:3000
 
 CODE=$(curl -s -o /dev/null -w '%{http_code}' -X POST -d '{"title":"demo"}' "$BASE/tasks")
 [ "$CODE" = "400" ] || fail "curl -d without a header should get 400, got $CODE"
-echo "ok 1 - curl -d without a header gets 400 (the bug)"
+echo "ok 1 - curl -d without a header gets 400: the body is ignored"
 
 ID=$(curl -s --json '{"title":"demo"}' "$BASE/tasks" | jq -r .id)
 [ -n "$ID" ] && [ "$ID" != "null" ] || fail "curl --json should create a task with an id"
