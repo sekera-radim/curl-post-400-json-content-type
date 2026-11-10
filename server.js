@@ -10,7 +10,7 @@ let nextId = 1;
 function sendJson(res, code, obj) {
   const body = JSON.stringify(obj);
   res.writeHead(code, { "Content-Type": "application/json" });
-  res.end(body);
+  res.end(body + "\n");
 }
 
 function readBody(req) {

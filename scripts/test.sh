@@ -14,7 +14,7 @@ echo "ok 2 - curl --json (or -H Content-Type) creates the task"
 
 SUMMARY=$(curl -s --json '{"summary":"done"}' "$BASE/tasks/$ID/complete" | jq -r .result.summary)
 [ "$SUMMARY" = "done" ] || fail "complete should return .result.summary, got $SUMMARY"
-echo "ok 3 - the API returns .result.summary, not an old field name"
+echo "ok 3 - the walkthrough reads fields the API really returns (.id, .result.summary)"
 
 node scripts/check-docs-examples.mjs >/tmp/docs.log 2>&1 || fail "README examples no longer match the live API"
 grep -q "ALL PASSED" /tmp/docs.log || fail "docs check did not pass"
